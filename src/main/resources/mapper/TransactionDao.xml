@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.joel.content.dao.TransactionDao">
+    <insert id="insertTransaction" parameterType="Trx"
+    useGeneratedKeys="true" keyProperty="id">
+        insert into trx(contentId, personId, buyNum, price, time)
+            values(#{contentId}, #{personId}, #{buyNum}, #{buyPrice}, #{buyTime})
+    </insert>
+    
+    <select id="getAccountByPersonId" resultMap="TrxResultWithContent" parameterType="int">
+        select trx.id as trxId, contentId, trx.price as buyPrice, buyNum, time,
+            title, icon
+        from trx
+        left join content
+        on contentId = content.id
+        where personId = #{personId}
+    </select>
+    
+    
+    <resultMap id="TrxResultWithContent" type="TrxWithContent">
+        <id property="trxId" column="trxId"/>
+        <result property="id" column="contentId"/>
+        <result property="title" column="title"/>
+        <result property="image" column="icon" typeHandler="MyBlobTypeHandler"/>
+        <result property="buyPrice" column="buyPrice"/>
+        <result property="buyNum" column="buyNum"/>
+        <result property="buyTime" column="time"/>
+    </resultMap>
+
+</mapper>

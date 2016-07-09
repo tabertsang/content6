@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.joel.content.dao.ContentDao">
+    <insert id="insertContent" parameterType="Content"
+    useGeneratedKeys="true" keyProperty="id" >
+        insert into content(title, abstract, icon, text, price) 
+            values(#{title}, #{summary}, #{image}, #{detail}, #{price})
+    </insert>
+    
+    <update id="updateContent" parameterType="Content">
+        update content set title=#{title},abstract=#{summary},icon=#{image},text=#{detail},price=#{price}
+        where id=#{id}
+    </update>
+    
+    <delete id="deleteContent" parameterType="int">
+        delete from content where id=#{contentId}
+    </delete>
+    
+    <select id="queryById" resultMap="ContentResult" parameterType="int">
+        select id, price,title,icon,abstract,text 
+        from content
+        where id = #{id}
+    </select>
+    
+    <select id="queryByIdForBuyer" resultMap="ContentResult">
+        select content.id, content.price,title,icon,abstract,text,trx.price as buyPrice,buyNum,(trx.id is not null) as isBuy
+        from content
+        left join trx
+        on content.id = trx.contentId
+        and personId = #{personId}
+        where content.id = #{id}
+    </select>
+    
+    
+    <select id="queryAll" resultMap="ContentResult">
+        select id, price,title,icon,abstract,text from content
+    </select>
+
+    
+    <select id="queryAllForBuyer" resultMap="ContentResult">
+        select content.id, content.price, title, icon,abstract, text, (trx.id is not null) as isBuy 
+        from content
+        left join trx
+        on content.id = trx.contentId
+        and trx.personId = #{personId}
+    </select>
+    
+    <select id="queryAllForSeller" resultMap="ContentResult">
+        select content.id, content.price, title, icon,abstract, text, (trx.id is not null) as isSell
+        from content 
+        left join trx
+        on content.id = trx.contentId;
+    </select>
+    
+        
+    <resultMap id="ContentResult" type="Content">
+        <id property="id" column="id"/>
+        <result property="title" column="title"/>
+        <result property="summary" column="abstract"/>
+        <result property="image" column="icon" typeHandler="MyBlobTypeHandler"/>
+        <result property="detail" column="text" typeHandler="MyBlobTypeHandler"/>
+        <result property="price" column="price"/>
+        <result property="isBuy" column="isBuy"/>
+        <result property="isSell" column="isSell"/>
+        <result property="buyPrice" column="buyPrice"/>
+        <result property="buyNum" column="buyNum"/>
+    </resultMap>
+    
+    
+    <select id="queryByIdForSeller" resultMap="ContentResultWithTrx" parameterType="int">
+        select content.id as contentId, content.price as contentPrice,title,icon,abstract,text,
+            trx.id as trxId,personId,trx.price as buyPrice,buyNum,trx.time as buyTime
+        from content
+        left join trx
+        on content.id = trx.contentId
+        where content.id = #{id}
+    </select>
+    
+    <resultMap id="ContentResultWithTrx" type="ContentWithTrx">
+        <constructor>
+            <idArg column="contentId" javaType="int"/>
+            <arg column="title" javaType="String"/>
+            <arg column="abstract" javaType="String"/>
+            <arg column="icon" javaType="String" typeHandler="MyBlobTypeHandler"/>
+            <arg column="text" javaType="String" typeHandler="MyBlobTypeHandler"/>
+            <arg column="contentPrice" javaType="int"/>
+        </constructor>
+        <collection property="trxes" ofType="Trx">
+            <id property="id" column="trxId"/>
+            <result property="contentId" column="contentId"/>
+            <result property="personId" column="personId"/>
+            <result property="buyNum"  column="buyNum"/>
+            <result property="buyPrice" column="buyPrice"/>
+            <result property="buyTime" column="buyTime"/>
+        </collection>
+        
+    </resultMap>
+        
+</mapper>
